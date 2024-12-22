@@ -26,7 +26,7 @@ from typing import Iterator, Tuple
 
 import torch
 from torch.utils.data import Dataset
-from torch.utils.data.distributed import DistributedSampler, T_co
+from torch.utils.data.distributed import DistributedSampler, _T_co
 
 from lighteval.tasks.requests import (
     GreedyUntilRequest,
@@ -318,7 +318,7 @@ class GenDistributedSampler(DistributedSampler):
     as our samples are sorted by length.
     """
 
-    def __iter__(self) -> Iterator[T_co]:
+    def __iter__(self) -> Iterator[_T_co]:
         if self.shuffle:
             # deterministically shuffle based on epoch and seed
             g = torch.Generator()

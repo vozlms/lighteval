@@ -39,8 +39,6 @@ from transformers import (
     GPTQConfig,
     PretrainedConfig,
 )
-from transformers.models.auto.modeling_auto import MODEL_FOR_CAUSAL_LM_MAPPING_NAMES
-
 from lighteval.data import GenerativeTaskDataset, LoglikelihoodDataset, LoglikelihoodSingleTokenDataset
 from lighteval.models.abstract_model import LightevalModel, ModelInfo
 from lighteval.models.model_output import (
@@ -69,6 +67,34 @@ from lighteval.utils.imports import (
 from lighteval.utils.parallelism import find_executable_batch_size
 from lighteval.utils.utils import EnvConfig, as_list, boolstring_to_bool
 
+import sys
+init_path = sys.path.copy()
+
+# Modify sys.path to include the path to your custom model
+sys.path.append('/home/adelmou/proj/parolelm')
+
+# Import your custom model and config classes
+from model import TextAudioLMConfig, TextAudioLMFromPretrained
+
+# Restore sys.path to its original state
+sys.path = init_path
+
+# Define a function to register your custom classes
+def register_custom_classes():
+    from transformers import AutoConfig, AutoModel, AutoModelForCausalLM
+    # Register your custom configuration and model classes
+    AutoConfig.register("text_audio_lm", TextAudioLMConfig)
+    AutoModel.register(TextAudioLMConfig, TextAudioLMFromPretrained)
+    AutoModelForCausalLM.register(TextAudioLMConfig, TextAudioLMFromPretrained)
+    # Register for auto class (optional)
+    TextAudioLMConfig.register_for_auto_class()
+    TextAudioLMFromPretrained.register_for_auto_class("AutoModel")
+
+# Import transformers modules
+from transformers import AutoConfig, AutoModel, AutoModelForCausalLM, BitsAndBytesConfig, GPTQConfig, PretrainedConfig
+
+# Register your custom classes
+register_custom_classes()
 
 logger = logging.getLogger(__name__)
 
@@ -181,7 +207,7 @@ class BaseModelConfig:
         revision = self.revision
         if self.subfolder:
             revision = f"{self.revision}/{self.subfolder}"
-        auto_config = AutoConfig.from_pretrained(
+        auto_config = TextAudioLMConfig.from_pretrained(
             model_name,
             revision=revision,
             trust_remote_code=self.trust_remote_code,
